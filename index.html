@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>視障按摩預約系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a3a5c,#1a5276,#154360)}
+:root{--primary:#1a5276;--primary-light:#2980b9;--gray-200:#e2e5e9;--gray-400:#9aa3ae;--gray-600:#4a5568;--danger:#c0392b;--danger-pale:#fadbd8;--radius:10px;--radius-lg:16px}
+.card{background:white;border-radius:var(--radius-lg);padding:48px 40px;width:420px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.logo{text-align:center;margin-bottom:36px}
+.logo-icon{width:68px;height:68px;background:var(--primary);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:14px;box-shadow:0 4px 16px rgba(26,82,118,.3)}
+.logo h1{font-size:22px;font-weight:600;color:var(--primary)}
+.logo p{font-size:13px;color:var(--gray-400);margin-top:5px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:13px;font-weight:500;color:var(--gray-600);margin-bottom:8px}
+.form-group input{width:100%;padding:13px 16px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:15px;font-family:inherit;outline:none;color:#1a202c;transition:border-color .2s}
+.form-group input:focus{border-color:var(--primary-light)}
+.btn{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:var(--radius);font-size:15px;font-weight:500;font-family:inherit;cursor:pointer;margin-top:8px;transition:background .2s}
+.btn:hover{background:var(--primary-light)}
+.err{background:var(--danger-pale);color:var(--danger);padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none}
+.err.show{display:block}
+.switch{text-align:center;margin-top:22px;font-size:13px;color:var(--gray-400)}
+.switch a{color:var(--primary-light);cursor:pointer;font-weight:500;text-decoration:none}
+.switch a:hover{text-decoration:underline}
+.loading{text-align:center;padding:12px;color:var(--gray-400);font-size:13px;display:none}
+.loading.show{display:block}
+/* Setup banner */
+#setup-section{display:none}
+#setup-section.show{display:block}
+#login-section{display:block}
+.setup-tip{background:#f0f7ff;border-radius:var(--radius);padding:16px;margin-bottom:24px;font-size:13px;color:var(--primary);line-height:1.8}
+.setup-tip strong{display:block;margin-bottom:4px;font-size:14px}
+code{background:rgba(0,0,0,.07);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- 初始設定 -->
+  <div id="setup-section" style="display:none">
+    <div class="logo">
+      <div class="logo-icon">🤲</div>
+      <h1>初次設定</h1>
+      <p>請填入 Google Apps Script 網址</p>
+    </div>
+    <div class="setup-tip">
+      <strong>📋 設定步驟</strong>
+      1. 開啟 Google 試算表 → 擴充功能 → Apps Script<br>
+      2. 貼上 <code>massage_apps_script.js</code> 的內容<br>
+      3. 部署 → 新增部署 → 網頁應用程式<br>
+      4. 執行身分：我，存取：任何人<br>
+      5. 複製部署網址貼入下方
+    </div>
+    <div class="form-group">
+      <label>Google Apps Script 部署網址</label>
+      <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <button class="btn" onclick="saveSetup()">儲存並開始使用</button>
+    <div class="err" id="setup-err"></div>
+  </div>
+
+  <!-- 員工登入 -->
+  <div id="login-section">
+    <div class="logo">
+      <div class="logo-icon">🤲</div>
+      <h1>視障按摩預約系統</h1>
+      <p>員工健康關懷計劃</p>
+    </div>
+    <div class="form-group">
+      <label>員工編號</label>
+      <input type="text" id="emp-id" placeholder="請輸入員工編號" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>密碼</label>
+      <input type="password" id="emp-pw" placeholder="預設密碼為員工編號" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="empLogin()">登入</button>
+    <div class="loading" id="login-loading">登入中，請稍候…</div>
+    <div class="err" id="login-err"></div>
+    <div class="switch"><a onclick="goAdmin()">管理者登入 →</a></div>
+  </div>
+</div>
+
+<script>
+const API_KEY='mas_api_url';
+function getAPI(){return 'https://script.google.com/macros/s/AKfycby89Fz2I2LPL_R9DjP6IJpn3SVh4TIA6PntbZVmmv-MhB-t4o1Zkctnztvr_I1R3CIq/exec';}
+
+function init(){ /* API hardcoded, no setup needed */ }
+
+function saveSetup(){
+  const url=document.getElementById('setup-url').value.trim();
+  const err=document.getElementById('setup-err');
+  err.classList.remove('show');
+  if(!url.startsWith('https://')){err.textContent='請輸入正確的 https:// 網址';err.classList.add('show');return}
+  localStorage.setItem(API_KEY,url);
+  location.reload();
+}
+
+async function empLogin(){
+  const id=String(document.getElementById('emp-id').value).trim();
+  const pw=String(document.getElementById('emp-pw').value);
+  const err=document.getElementById('login-err');
+  const loading=document.getElementById('login-loading');
+  err.classList.remove('show');
+  if(!id||!pw){err.textContent='請填寫員工編號與密碼';err.classList.add('show');return}
+  loading.classList.add('show');
+  try{
+    const r=await callAPI({action:'loginEmployee',id,password:pw});
+    loading.classList.remove('show');
+    if(!r.ok){err.textContent=r.error||'登入失敗';err.classList.add('show');return}
+    sessionStorage.setItem('emp',JSON.stringify(r.employee));
+    location.href='employee.html';
+  }catch(e){
+    loading.classList.remove('show');
+    err.textContent='連線失敗，請確認 API 設定';err.classList.add('show');
+  }
+}
+
+function goAdmin(){location.href='admin-login.html'}
+
+async function callAPI(data){
+  const url=getAPI();
+  if(!url)throw new Error('未設定API');
+  const r=await fetch(url,{method:'POST',redirect:'follow',body:JSON.stringify(data)});
+  return r.json();
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter')empLogin()});
+init();
+</script>
+</body>
+</html>
