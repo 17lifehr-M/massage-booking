@@ -239,7 +239,7 @@ let emp=null, calData={myBookings:[],occupancy:{},blocked:[],settings:{openDays:
 let viewDate=new Date(), openDays=[3];
 
 // ── 工具 ──────────────────────────────────────────
-function getAPI(){return 'https://script.google.com/macros/s/AKfycbzXFTOZPNy3LXZlYw7hS-tDiVp2x9WjQorcpDQXxQgXIBIR_A42Qw21vcIHjY1IWOBFLQ/exec';}
+function getAPI(){return 'https://script.google.com/macros/s/AKfycbwSAwiDZ7uxfgF4WXen-ygBe-QKbisbfVgrmVF6aOUgnz7-8IfY1EpZTzI3o8efv-SsIw/exec';}
 function fmtDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function parseLocalDate(s){if(!s)return new Date(NaN);const[y,m,d]=String(s).slice(0,10).split('-').map(Number);return new Date(y,m-1,d)}
 
