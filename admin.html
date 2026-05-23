@@ -498,6 +498,7 @@ async function api(data,silent){
 async function init(){
   adminInfo=JSON.parse(sessionStorage.getItem('admin')||'null');
   if(!adminInfo){location.href='admin-login.html';return}
+  if(adminInfo) adminInfo.id=String(adminInfo.id);
   document.getElementById('admin-name').textContent=adminInfo.name||adminInfo.id;
   await loadAll();
 }
@@ -665,7 +666,7 @@ function sortBks(col){
 }
 
 function filterBks(){
-  lastFilter={emp:document.getElementById('s-emp').value.trim(),month:document.getElementById('s-month').value,status:document.getElementById('s-status').value,paid:document.getElementById('s-paid').value};
+  lastFilter={emp:String(document.getElementById('s-emp').value).trim(),month:document.getElementById('s-month').value,status:document.getElementById('s-status').value,paid:document.getElementById('s-paid').value};
   renderBks(lastFilter);
 }
 
@@ -674,7 +675,7 @@ function renderBks(filter){
   let bks=[...allBks];
   const today=fmtDate(new Date());
   if(filter){
-    if(filter.emp)bks=bks.filter(b=>b.empId.includes(filter.emp)||b.empName?.includes(filter.emp));
+    if(filter.emp)bks=bks.filter(b=>String(b.empId).includes(filter.emp)||b.empName?.includes(filter.emp));
     if(filter.month)bks=bks.filter(b=>b.date.startsWith(filter.month));
     if(filter.status)bks=bks.filter(b=>{
       const a=b.status==='cancelled'?'cancelled':(b.date<today?'past':'upcoming');
@@ -746,7 +747,7 @@ function exportCSV(){
 
 // ── EMPLOYEES ─────────────────────────────────────
 function filterEmps(){
-  const q=document.getElementById('s-emp2').value.trim();
+  const q=String(document.getElementById('s-emp2').value).trim();
   renderEmps(q?allEmps.filter(e=>e.id.includes(q)||e.name.includes(q)):null);
 }
 function renderEmps(list){
@@ -768,7 +769,7 @@ function openAddEmp(){
   document.getElementById('add-emp-overlay').classList.add('open');
 }
 async function addEmp(){
-  const id=document.getElementById('ne-id').value.trim();
+  const id=String(document.getElementById('ne-id').value).trim();
   const name=document.getElementById('ne-name').value.trim();
   const email=document.getElementById('ne-email').value.trim();
   const err=document.getElementById('add-emp-err');err.classList.remove('show');
@@ -956,8 +957,8 @@ function renderAdmins(list){
     </div>`).join('');
 }
 async function addAdmin(){
-  const id=document.getElementById('new-admin-id').value.trim();
-  const pw=document.getElementById('new-admin-pw').value;
+  const id=String(document.getElementById('new-admin-id').value).trim();
+  const pw=String(document.getElementById('new-admin-pw').value);
   const err=document.getElementById('add-admin-err');err.classList.remove('show');
   if(!id||!pw){err.textContent='請填寫帳號與密碼';err.classList.add('show');return}
   if(pw.length<6){err.textContent='密碼至少6碼';err.classList.add('show');return}
@@ -975,9 +976,9 @@ async function deleteAdmin(id){
     }},{label:'取消',cls:'btn-no',action:()=>{}}]);
 }
 async function changeAdminPw(){
-  const cur=document.getElementById('ap-cur').value;
-  const nw=document.getElementById('ap-new').value;
-  const cf=document.getElementById('ap-cf').value;
+  const cur=String(document.getElementById('ap-cur').value);
+  const nw=String(document.getElementById('ap-new').value);
+  const cf=String(document.getElementById('ap-cf').value);
   const err=document.getElementById('admin-pw-err');const suc=document.getElementById('admin-pw-suc');
   err.classList.remove('show');suc.classList.remove('show');
   if(nw.length<6){err.textContent='新密碼至少6碼';err.classList.add('show');return}

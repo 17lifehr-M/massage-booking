@@ -110,6 +110,7 @@ async function empLogin(){
     const r=await callAPI({action:'loginEmployee',id,password:pw});
     loading.classList.remove('show');
     if(!r.ok){err.textContent=r.error||'登入失敗';err.classList.add('show');return}
+    if(r.employee) r.employee.id = String(r.employee.id);
     sessionStorage.setItem('emp',JSON.stringify(r.employee));
     location.href='employee.html';
   }catch(e){

@@ -308,6 +308,8 @@ async function api(data){
 async function init(){
   emp=JSON.parse(sessionStorage.getItem('emp')||'null');
   if(!emp){location.href='index.html';return}
+  // Force string to preserve leading zeros
+  if(emp) emp.id=String(emp.id);
   document.getElementById('hdr-name').textContent=`${emp.name}（${emp.id}）`;
   await loadCalData();
 }

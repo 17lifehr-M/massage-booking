@@ -68,6 +68,7 @@ async function adminLogin(){
     const data=await r.json();
     loading.classList.remove('show');
     if(!data.ok){err.textContent=data.error||'帳號或密碼錯誤';err.classList.add('show');return}
+    if(data.admin) data.admin.id = String(data.admin.id);
     sessionStorage.setItem('admin',JSON.stringify(data.admin));
     location.href='admin.html';
   }catch(e){
